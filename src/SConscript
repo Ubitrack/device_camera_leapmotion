@@ -1,0 +1,15 @@
+import glob
+
+Import( '*' )
+
+if not have_utdataflow or not have_leap :
+	success = True
+	Return('success')
+
+# glob all SConscript files in subdirectories
+sconsfiles = globSourceFiles( "*/SConscript" )
+
+# recurse into subdirectories and export driver build environment
+SConscript( sconsfiles )
+success = True
+Return('success')
