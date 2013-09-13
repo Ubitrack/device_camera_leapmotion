@@ -20,6 +20,13 @@
       <Node name="RingFinger"       displayName="RingFinger"/>
       <Node name="LittleFinger"       displayName="LittleFinger"/>
 
+      <Node name="Palm2"       displayName="Palm2"/>
+      <Node name="Thumb2"       displayName="Thumb2"/>
+      <Node name="IndexFinger2"       displayName="IndexFinger2"/>
+      <Node name="MiddleFinger2"       displayName="MiddleFinger2"/>
+      <Node name="RingFinger2"       displayName="RingFinger2"/>
+      <Node name="LittleFinger2"       displayName="LittleFinger2"/>
+      
       <Edge name="PalmPose"    source="LeapMotion" destination="Palm" displayName="PalmPose">
         <Description>
           <h:p>The palm pose.</h:p>
@@ -61,6 +68,57 @@
       </Edge>
 
       <Edge name="LittleFingerPose"    source="LeapMotion" destination="LittleFinger" displayName="LittleFingerPose">
+        <Description>
+          <h:p>The palm pose.</h:p>
+        </Description>
+        <Attribute name="type" value="6D" xsi:type="EnumAttributeReferenceType"/>
+        <Attribute name="mode" value="push" xsi:type="EnumAttributeReferenceType"/>
+      </Edge>
+
+
+      
+      
+      <Edge name="PalmPose2"    source="LeapMotion" destination="Palm2" displayName="PalmPose2">
+        <Description>
+          <h:p>The palm pose.</h:p>
+        </Description>
+        <Attribute name="type" value="6D" xsi:type="EnumAttributeReferenceType"/>
+        <Attribute name="mode" value="push" xsi:type="EnumAttributeReferenceType"/>
+      </Edge>
+      
+      <Edge name="ThumbPose2"    source="LeapMotion" destination="Thumb2" displayName="ThumbPose2">
+        <Description>
+          <h:p>The palm pose.</h:p>
+        </Description>
+        <Attribute name="type" value="6D" xsi:type="EnumAttributeReferenceType"/>
+        <Attribute name="mode" value="push" xsi:type="EnumAttributeReferenceType"/>
+      </Edge>
+      
+      <Edge name="IndexFingerPose2"    source="LeapMotion" destination="IndexFinger2" displayName="IndexFingerPose2">
+        <Description>
+          <h:p>The palm pose.</h:p>
+        </Description>
+        <Attribute name="type" value="6D" xsi:type="EnumAttributeReferenceType"/>
+        <Attribute name="mode" value="push" xsi:type="EnumAttributeReferenceType"/>
+      </Edge>
+
+      <Edge name="MiddleFingerPose2"    source="LeapMotion" destination="MiddleFinger2" displayName="MiddleFingerPose2">
+        <Description>
+          <h:p>The palm pose.</h:p>
+        </Description>
+        <Attribute name="type" value="6D" xsi:type="EnumAttributeReferenceType"/>
+        <Attribute name="mode" value="push" xsi:type="EnumAttributeReferenceType"/>
+      </Edge>
+      
+      <Edge name="RingFingerPose2"    source="LeapMotion" destination="RingFinger2" displayName="RingFingerPose2">
+        <Description>
+          <h:p>The palm pose.</h:p>
+        </Description>
+        <Attribute name="type" value="6D" xsi:type="EnumAttributeReferenceType"/>
+        <Attribute name="mode" value="push" xsi:type="EnumAttributeReferenceType"/>
+      </Edge>
+
+      <Edge name="LittleFingerPose2"    source="LeapMotion" destination="LittleFinger2" displayName="LittleFingerPose2">
         <Description>
           <h:p>The palm pose.</h:p>
         </Description>

@@ -29,6 +29,9 @@
 * @author Yuta Itoh <yuta.itoh@in.tum.de>
 */
 
+
+#define DOUBLE_HANDS /// Hard-coded implementation for the second hand detection 
+
 #include <string>
 #include <vector>
 #include <list>
@@ -66,15 +69,33 @@ public:
 	virtual void onFrame(const Controller&);
 	virtual void onFocusGained(const Controller&);
 	virtual void onFocusLost(const Controller&);
+#ifdef DOUBLE_HANDS
+	SampleListener( Dataflow::PushSupplier< Measurement::Pose > &palmPort,
+		            std::vector< Dataflow::PushSupplier< Measurement::Pose >* > &fingerPorts,
+					Dataflow::PushSupplier< Measurement::Pose > &palmPort2,
+		            std::vector< Dataflow::PushSupplier< Measurement::Pose >* > &fingerPorts2)
+#else
 	SampleListener( Dataflow::PushSupplier< Measurement::Pose > &palmPort,
 		            std::vector< Dataflow::PushSupplier< Measurement::Pose >* > &fingerPorts)
+#endif // DOUBLE_HANDS
 		: m_palmPort(palmPort),
 		m_fingerPorts(fingerPorts),
+#ifdef DOUBLE_HANDS
+		m_palmPort2(palmPort2),
+		m_fingerPorts2(fingerPorts2),
+#else
+		m_palmPort(palmPort),
+		m_fingerPorts(fingerPorts),
+#endif // DOUBLE_HANDS
 		m_kScaleMmToMeter(0.001)
 	{
 	};
 	Dataflow::PushSupplier< Measurement::Pose > &m_palmPort;
 	std::vector< Dataflow::PushSupplier< Measurement::Pose >* > &m_fingerPorts;
+#ifdef DOUBLE_HANDS
+	Dataflow::PushSupplier< Measurement::Pose > &m_palmPort2;
+	std::vector< Dataflow::PushSupplier< Measurement::Pose >* > &m_fingerPorts2;
+#endif // DOUBLE_HANDS
 	const double m_kScaleMmToMeter;
 };
 
@@ -167,6 +188,61 @@ void SampleListener::onFrame(const Controller& controller) {
 		}
 
 	}
+#ifdef DOUBLE_HANDS
+	if ( frame.hands().count()>=2) {
+		// Get the first hand
+		const Hand hand = frame.hands()[1];
+
+
+		// Check if the hand has any fingers
+		const FingerList fingers = hand.fingers();
+		if (!fingers.empty()) {
+			// Calculate the hand's average finger tip position
+			Vector avgPos;
+
+			/// Send finger positions
+			for (int i = 0; i < fingers.count(); ++i) {
+				avgPos += fingers[i].tipPosition();
+				if (m_fingerPorts2[i]->isConnected()) {
+					const Math::Quaternion q;
+					const Leap::Vector &xyz = fingers[i].tipPosition();
+					/// scale unit from millimeter to meter
+					Math::Vector<3,double> t( m_kScaleMmToMeter*xyz[0], m_kScaleMmToMeter*xyz[1], m_kScaleMmToMeter*xyz[2] );
+					Math::Pose pose(q,t);
+					m_fingerPorts2[i]->send( Measurement::Pose(time, pose) );
+				}
+			}
+
+			avgPos /= (float)fingers.count();
+			LOG4CPP_INFO( logger,  "Hand has " << fingers.count()
+				<< " fingers, average finger tip position" << avgPos  );
+		}
+
+		// Get the hand's sphere radius and palm position
+		LOG4CPP_INFO( logger,  "Hand sphere radius: " << hand.sphereRadius()
+			<< " mm, palm position: " << hand.palmPosition()  );
+
+		// Get the hand's normal vector and direction
+		const Vector normal = hand.palmNormal();
+		const Vector direction = hand.direction();
+
+		// Calculate the hand's pitch, roll, and yaw angles
+		LOG4CPP_INFO( logger,  "Hand pitch: " << direction.pitch() * RAD_TO_DEG << " degrees, "
+			<< "roll: " << normal.roll() * RAD_TO_DEG << " degrees, "
+			<< "yaw: " << direction.yaw() * RAD_TO_DEG << " degrees"  );
+		
+		/// Send palm pose
+		if (m_palmPort.isConnected()) {
+			Math::Quaternion       q( normal.roll(), -direction.yaw(), direction.pitch() );
+			Leap::Vector palm_xyz = hand.palmPosition();
+			/// scale unit from millimeter to meter
+			Math::Vector<3,double> t( m_kScaleMmToMeter*palm_xyz[0], m_kScaleMmToMeter*palm_xyz[1], m_kScaleMmToMeter*palm_xyz[2] ); 
+			Math::Pose pose(q,t);
+			m_palmPort2.send( Measurement::Pose(time, pose) );
+		}
+
+	}
+#endif // DOUBLE_HANDS
 
 	// Get gestures
 	const GestureList gestures = frame.gestures();
@@ -310,6 +386,15 @@ protected:
 	Dataflow::PushSupplier< Measurement::Pose > m_ringFingerPort;
 	Dataflow::PushSupplier< Measurement::Pose > m_littleFingerPort;
 	std::vector< Dataflow::PushSupplier< Measurement::Pose >* > m_fingerPorts;
+#ifdef DOUBLE_HANDS
+	Dataflow::PushSupplier< Measurement::Pose > m_palmPort2;
+	Dataflow::PushSupplier< Measurement::Pose > m_thumbFingerPort2;
+	Dataflow::PushSupplier< Measurement::Pose > m_indexFingerPort2;
+	Dataflow::PushSupplier< Measurement::Pose > m_middleFingerPort2;
+	Dataflow::PushSupplier< Measurement::Pose > m_ringFingerPort2;
+	Dataflow::PushSupplier< Measurement::Pose > m_littleFingerPort2;
+	std::vector< Dataflow::PushSupplier< Measurement::Pose >* > m_fingerPorts2;
+#endif // DOUBLE_HANDS
 
 	/// Leap Motion classes
 	// Create a sample listener and controller
@@ -327,6 +412,14 @@ LeapMotionFingerTracker::LeapMotionFingerTracker( const std::string& sName, boos
 	m_middleFingerPort( "MiddleFingerPose", *this ),
 	m_ringFingerPort( "RingFingerPose", *this ),
 	m_littleFingerPort( "LittleFingerPose", *this ),
+#ifdef DOUBLE_HANDS
+	m_palmPort2( "PalmPose2", *this ),
+	m_thumbFingerPort2( "ThumbPose2", *this ),
+	m_indexFingerPort2( "IndexFingerPose2", *this ),
+	m_middleFingerPort2( "MiddleFingerPose2", *this ),
+	m_ringFingerPort2( "RingFingerPose2", *this ),
+	m_littleFingerPort2( "LittleFingerPose2", *this ),
+#endif // DOUBLE_HANDS
 	/**
 	I wish I could use C++0x notations....
 	, m_fingerPorts( {
@@ -334,7 +427,11 @@ LeapMotionFingerTracker::LeapMotionFingerTracker( const std::string& sName, boos
 	Dataflow::PushSupplier< Measurement::Pose >( "1", *this ),
 	Dataflow::PushSupplier< Measurement::Pose >( "1", *this ) } )
 	**/
+#ifdef DOUBLE_HANDS
+	m_listener( m_palmPort, m_fingerPorts, m_palmPort2, m_fingerPorts2)
+#else
 	m_listener( m_palmPort, m_fingerPorts)
+#endif // DOUBLE_HANDS
 {
 	//	subgraph->m_DataflowAttributes.getAttributeData( "highguiCameraIndex", m_cameraIndex );
 	
@@ -345,6 +442,14 @@ LeapMotionFingerTracker::LeapMotionFingerTracker( const std::string& sName, boos
 	m_fingerPorts.push_back( &m_middleFingerPort );
 	m_fingerPorts.push_back( &m_ringFingerPort );
 	m_fingerPorts.push_back( &m_littleFingerPort );
+#ifdef DOUBLE_HANDS
+	m_fingerPorts2.push_back( &m_thumbFingerPort2 );
+	m_fingerPorts2.push_back( &m_indexFingerPort2 );
+	m_fingerPorts2.push_back( &m_middleFingerPort2 );
+	m_fingerPorts2.push_back( &m_ringFingerPort2 );
+	m_fingerPorts2.push_back( &m_littleFingerPort2 );
+#endif // DOUBLE_HANDS
+
 
 	stop();
 }
@@ -388,6 +493,12 @@ void LeapMotionFingerTracker::ThreadProc()
 			//boost::shared_ptr< Math::Pose > pose
 			m_palmPort.send( Measurement::Pose(time,Math::Pose()) );
 		}
+#ifdef DOUBLE_HANDS
+		if (m_palmPort2.isConnected()) {
+			//boost::shared_ptr< Math::Pose > pose
+			m_palmPort2.send( Measurement::Pose(time,Math::Pose()) );
+		}
+#endif // DOUBLE_HANDS
 	}
 
 	// Remove the sample listener when done
