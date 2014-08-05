@@ -209,6 +209,13 @@ void LeapMotionToolComponent::sendData(const Leap::Frame frame, Measurement::Tim
 	}
 }
 
+std::ostream& operator<<( std::ostream& s, const LeapMotionComponentKey& k )
+{
+        s << "LeapMotionComponent[ " << k.m_targetClass << " "
+                             << k.m_targetID << " ]";
+        return s;
+}
+
 // register module at factory
 UBITRACK_REGISTER_COMPONENT( ComponentFactory* const cf ) {
 	std::vector< std::string > moduleComponents;

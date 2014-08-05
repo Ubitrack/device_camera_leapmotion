@@ -112,6 +112,7 @@ class LeapMotionComponentKey
 		int m_targetClass;
 };
 
+std::ostream& operator<<( std::ostream& s, const LeapMotionComponentKey& k );
 
 /**
  * Test Module 
@@ -151,6 +152,7 @@ protected:
 private:
 	Leap::Controller m_controller;
 };
+
 
 
 /**
