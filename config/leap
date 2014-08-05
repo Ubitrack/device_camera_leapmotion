@@ -13,12 +13,7 @@ else:
 	SConscript ( '#/config/libraryConfig.py' )
 	Import('standardLibFinder', 'standardLibConfig')
 
-	opts.Add( 'LEAP_PATH', 'Path to the leap library (only for VRML viewer component)' )
-	opts.Add( 'LEAP_INCLUDE', 'Path to the leap headers' )
-	opts.Add( 'LEAP_LIBPATH', 'Path to the leap libraries' )
-	opts.Add( 'LEAP_LIBS', 'Leap libraries to link against' )
-
-	libName = "leap"
+	libName = "LEAP"
 
 	compileSettings = []
 	if sys.platform == 'darwin':
