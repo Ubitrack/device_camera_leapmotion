@@ -6,7 +6,7 @@ class UbitrackCoreConan(ConanFile):
     version = "1.3.0"
 
     description = "Ubitrack Device Camera Leap motion"
-    url = "https://github.com/Ubitrack/device_leapmotion.git"
+    url = "https://github.com/Ubitrack/device_camera_leapmotion.git"
     license = "LGPL"
 
     short_paths = True
